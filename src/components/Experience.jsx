@@ -2,6 +2,8 @@ import { useFrame, extend, useThree } from "@react-three/fiber";
 import { useRef } from "react";
 import { Plane } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import CustomObject from "./CustomObject";
+import * as THREE from 'three'
 
 extend({ OrbitControls })
 
@@ -11,6 +13,10 @@ export default function Experience(){
     const shapesRef = useRef()
     const { camera, gl } = useThree()
     useFrame((state, delta) => {
+        // const angle = state.clock.elapsedTime
+        // state.camera.position.x = Math.cos(angle) * 3
+        // state.camera.position.z = Math.sin(angle) * 3
+        // state.camera.lookAt(0,0,0)
         cubeRef.current.rotation.y += delta
         // shapesRef.current.rotation.y += delta
     })
@@ -34,8 +40,10 @@ export default function Experience(){
 
             <mesh rotation-x={ - Math.PI * 0.5 } position-y={-1} scale={10}>
                 <planeGeometry/>
-                <meshStandardMaterial color="lightblue" />
+                <meshStandardMaterial color="lightblue" side={THREE.DoubleSide} />
             </mesh>
+
+            <CustomObject />
         </>
 
     )
