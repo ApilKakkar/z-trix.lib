@@ -1,4 +1,4 @@
-import { OrbitControls } from "@react-three/drei";
+import { OrbitControls, useKeyboardControls } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { Physics, RigidBody } from "@react-three/rapier";
 import { useRef } from "react";
@@ -6,13 +6,44 @@ import { useRef } from "react";
 export default function DroneFlying() {
     const droneRef = useRef()
 
-    const jumpDrone = () => {
-        droneRef.current.applyImpulse({x:0,y:10,z:0})
-    }
+    const [ subscribeKeys, getKeys ] = useKeyboardControls() 
 
-    useFrame((state) => {
-        const y_impulse = (Math.sin(state.clock.getElapsedTime()) / 3)
-        droneRef.current.applyImpulse({x:0,y:y_impulse,z:0})
+    useFrame((state, delta) => {
+        const { forward, backward, left, right, up, down } = getKeys()
+
+        const impulse = { x : 0, y : 0, z : 0 }
+        const torque = { x : 0, y : 0, z : 0 }
+
+        const impulseStrength = 10 * delta
+        const torqueStrength = 1     * delta
+
+        if ( up ) {
+            impulse.y += impulseStrength
+            torque.z -= torqueStrength
+        }
+        if ( down ) {
+            impulse.y -= impulseStrength
+            torque.z += torqueStrength
+        }
+        if ( right ) {
+            impulse.z -= impulseStrength
+            torque.x -= torqueStrength
+        }
+        if ( left ) {
+            impulse.z += impulseStrength
+            torque.x += torqueStrength
+        }
+        if ( forward ) {
+            impulse.x -= impulseStrength
+            torque.z += torqueStrength
+        }
+        if ( backward ) {
+            impulse.x += impulseStrength
+            torque.z -= torqueStrength
+        }
+
+        droneRef.current.applyImpulse(impulse)
+        droneRef.current.applyTorqueImpulse(torque)
     })
 
 
@@ -43,8 +74,8 @@ export default function DroneFlying() {
                 </RigidBody>
 
 
-                <RigidBody ref={droneRef} type="kinemetic" position={[0,0,0]} gravityScale={0.1}>
-                    <group onClick={jumpDrone}>
+                <RigidBody ref={droneRef} canSleep={false} type="kinemetic" position={[0,0,0]} gravityScale={0}>
+                    <group>
                         <mesh castShadow>
                             <boxGeometry args={[4,0.5,1.5]} />
                             <meshStandardMaterial color="red" />
@@ -53,7 +84,27 @@ export default function DroneFlying() {
                             <boxGeometry args={[1,0.25,4]} />
                             <meshStandardMaterial color="red" />
                         </mesh>
+                        <mesh castShadow position={[2,0.5,0.5]} rotation-z={- Math.PI * 0.25}>
+                            <boxGeometry args={[1,3,0.2]} />
+                            <meshStandardMaterial color="blue" />
+                        </mesh>
+                        <mesh castShadow position={[2.5,1.5,0]}>
+                            <boxGeometry args={[1,0.2,3]} />
+                            <meshStandardMaterial color="blue" />
+                        </mesh>
+                        <mesh castShadow position={[2,0.5,-0.5]} rotation-z={- Math.PI * 0.25}>
+                            <boxGeometry args={[1,3,0.2]} />
+                            <meshStandardMaterial color="blue" />
+                        </mesh>
                         <mesh castShadow position={[0,0.5,0]}>
+                            <sphereGeometry args={[0.5,32,32]} />
+                            <meshStandardMaterial color="yellow" />
+                        </mesh>
+                        <mesh castShadow position={[-2,0,-1]}>
+                            <sphereGeometry args={[0.5,32,32]} />
+                            <meshStandardMaterial color="yellow" />
+                        </mesh>
+                        <mesh castShadow position={[-2,0,1]}>
                             <sphereGeometry args={[0.5,32,32]} />
                             <meshStandardMaterial color="yellow" />
                         </mesh>
